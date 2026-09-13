@@ -20,6 +20,11 @@
         .omr-section { flex: 4; padding: 20px; overflow-y: auto; background: white; }
         h2 { border-bottom: 2px solid #3498db; padding-bottom: 10px; color: #2c3e50; margin-top: 0; }
         
+        /* 이름 입력 칸 디자인 */
+        #nameContainer { margin-bottom: 15px; padding: 15px; background: #eaf2f8; border-radius: 5px; font-weight: bold; color: #2c3e50; display: flex; align-items: center; }
+        #studentName { padding: 8px; border: 1px solid #bdc3c7; border-radius: 4px; font-size: 1em; margin-left: 10px; flex: 1; outline: none; }
+        #studentName:focus { border-color: #3498db; }
+
         .omr-row { display: flex; align-items: center; margin-bottom: 5px; padding: 10px; background: #f9f9f9; border-radius: 5px; }
         .q-num { font-weight: bold; width: 45px; color: #3498db; }
         .options { display: flex; gap: 10px; }
@@ -31,7 +36,6 @@
         .correct-text { color: #27ae60; font-weight: bold; }
         .wrong-text { color: #e74c3c; font-weight: bold; }
         
-        /* 채점 후 나타나는 인라인 해설 디자인 */
         .explanation-text { display: none; margin: 0 0 15px 0; padding: 12px; background: #e8f8f5; border-left: 4px solid #1abc9c; font-size: 0.95em; border-radius: 4px; color: #333; line-height: 1.5; }
         
         .submit-btn { background-color: #e74c3c; color: white; border: none; padding: 15px; font-size: 1.1em; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
@@ -65,11 +69,17 @@
         <!-- OMR 답안지 및 해설 -->
         <div class="omr-section">
             <h2>답안 입력 (OMR)</h2>
+            
+            <!-- 이름 입력 칸 추가 -->
+            <div id="nameContainer" style="display:none;">
+                👤 이름: <input type="text" id="studentName" placeholder="학번과 이름을 입력하세요 (예: 10101 홍길동)">
+            </div>
+
             <div id="omrArea"></div>
             <button id="submitBtn" class="submit-btn" onclick="gradeQuiz()" style="display:none;">✅ 채점하고 정답·해설 보기</button>
 
             <div id="historyContainer" style="display:none;">
-                <h2>📊 내 채점 기록</h2>
+                <h2>📊 채점 기록 (캡처용)</h2>
                 <div id="historyArea"></div>
             </div>
         </div>
@@ -114,12 +124,14 @@
                 .then(data => {
                     currentQuizData = data;
                     document.getElementById('headerTitle').innerText = data.title;
+                    document.getElementById('nameContainer').style.display = 'flex'; // 이름 입력 칸 표시
                     renderOMR();
                     document.getElementById('submitBtn').style.display = 'block'; 
                 })
                 .catch(err => {
                     document.getElementById('omrArea').innerHTML = `<p style="color:red;">채점 데이터를 불러오지 못했습니다.</p>`;
                     document.getElementById('submitBtn').style.display = 'none';
+                    document.getElementById('nameContainer').style.display = 'none';
                 });
         }
 
@@ -129,7 +141,7 @@
 
             for (let i = 0; i < currentQuizData.totalQuestions; i++) {
                 let optionsHTML = '';
-                for (let j = 1; j <= 5; j++) { // 5지선다 기준
+                for (let j = 1; j <= 5; j++) { 
                     optionsHTML += `
                         <input type="radio" id="q${i}_opt${j}" name="question${i}" value="${j}">
                         <label for="q${i}_opt${j}">${j}</label>
@@ -152,6 +164,14 @@
         function gradeQuiz() {
             if (!currentQuizData) return;
             
+            // 이름 입력 확인 로직 추가
+            const studentName = document.getElementById('studentName').value.trim();
+            if (!studentName) {
+                alert('채점하기 전에 학번과 이름을 먼저 입력해 주세요!');
+                document.getElementById('studentName').focus();
+                return;
+            }
+
             const total = currentQuizData.totalQuestions;
             let answered = 0;
             for (let i = 0; i < total; i++) {
@@ -170,7 +190,7 @@
                 const expText = document.getElementById(`exp-${i}`);
                 const correctAnswer = currentQuizData.answers[i];
 
-                if (expText) expText.style.display = 'block'; // 채점 시 해설 노출
+                if (expText) expText.style.display = 'block'; 
                 resultText.style.display = 'block';
 
                 if (correctAnswer === 0) {
@@ -186,18 +206,22 @@
             }
 
             const finalScore = autoTotal > 0 ? Math.round((score / autoTotal) * 100) : 0;
-            saveHistory(currentQuizData.title, score, autoTotal, finalScore);
-            alert(`객관식 자동 채점이 완료되었습니다!\n(자동 채점 대상 ${autoTotal}문제 중 ${score}문제 정답 - ${finalScore}점)`);
+            
+            // 기록 저장 시 이름(studentName) 같이 넘기기
+            saveHistory(studentName, currentQuizData.title, score, autoTotal, finalScore);
+            alert(`[${studentName}] 학생의 객관식 자동 채점이 완료되었습니다!\n(자동 채점 대상 ${autoTotal}문제 중 ${score}문제 정답 - ${finalScore}점)`);
             
             document.getElementById('submitBtn').style.display = 'none'; 
+            document.getElementById('nameContainer').style.display = 'none'; // 채점 후 이름 입력칸 숨김
         }
 
-        function saveHistory(testTitle, score, total, finalScore) {
+        // 기록 저장 및 불러오기 함수에 이름(name) 항목 추가
+        function saveHistory(studentName, testTitle, score, total, finalScore) {
             const history = JSON.parse(localStorage.getItem('pdfQuizHistory')) || [];
             const now = new Date();
             const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
             
-            history.unshift({ testTitle: testTitle, date: dateStr, score: score, total: total, finalScore: finalScore });
+            history.unshift({ name: studentName, testTitle: testTitle, date: dateStr, score: score, total: total, finalScore: finalScore });
             localStorage.setItem('pdfQuizHistory', JSON.stringify(history));
             loadHistory();
         }
@@ -212,8 +236,8 @@
                 history.slice(0, 5).forEach(record => {
                     historyArea.innerHTML += `
                         <div class="history-item">
-                            <strong style="color:#2980b9;">[${record.testTitle}]</strong><br>
-                            🗓️ ${record.date} - <strong>${record.finalScore}점</strong> (${record.total}문항 중 ${record.score}정답)
+                            <strong style="color:#2c3e50; font-size:1.1em;">👤 ${record.name}</strong> <span style="color:#7f8c8d; font-size:0.9em;">- ${record.testTitle}</span><br>
+                            🗓️ ${record.date} - <strong style="color:#e74c3c; font-size:1.1em;">${record.finalScore}점</strong> (${record.total}문항 중 ${record.score}정답)
                         </div>
                     `;
                 });
