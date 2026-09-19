@@ -94,22 +94,34 @@
         window.onload = function() {
             fetch('list.json')
                 .then(res => res.json())
-                .then(list => {
+                .then(data => {
                     const selector = document.getElementById('testSelector');
                     selector.innerHTML = ''; 
                     
-                    list.forEach(test => {
-                        const option = document.createElement('option');
-                        option.value = JSON.stringify(test);
-                        option.text = test.name;
-                        selector.appendChild(option);
+                    let firstTest = null;
+
+                    // 새롭게 바뀐 그룹화된 JSON 데이터 처리
+                    data.forEach(group => {
+                        const optgroup = document.createElement('optgroup');
+                        optgroup.label = group.publisher; // 출판사 이름으로 그룹 생성
+
+                        group.tests.forEach(test => {
+                            const option = document.createElement('option');
+                            option.value = JSON.stringify(test);
+                            option.text = test.name;
+                            optgroup.appendChild(option);
+                            
+                            if (!firstTest) firstTest = test; // 첫 번째 시험지 기억해두기
+                        });
+                        selector.appendChild(optgroup);
                     });
 
-                    if (list.length > 0) loadTest(list[0]);
+                    // 사이트 열리면 첫 번째 시험지 자동 로드
+                    if (firstTest) loadTest(firstTest);
                     loadHistory();
                 })
                 .catch(err => {
-                    document.getElementById('omrArea').innerHTML = '<p style="color:red;">목록 파일(list.json)을 불러오지 못했습니다.</p>';
+                    document.getElementById('omrArea').innerHTML = '<p style="color:red;">목록 파일(list.json)을 불러오지 못했습니다. 파일 구조를 확인해주세요.</p>';
                 });
         };
 
@@ -132,7 +144,7 @@
                     document.getElementById('submitBtn').style.display = 'block'; 
                 })
                 .catch(err => {
-                    document.getElementById('omrArea').innerHTML = `<p style="color:red;">채점 데이터를 불러오지 못했습니다.</p>`;
+                    document.getElementById('omrArea').innerHTML = `<p style="color:red;">채점 데이터(${testInfo.answerData})를 불러오지 못했습니다.</p>`;
                     document.getElementById('submitBtn').style.display = 'none';
                     document.getElementById('nameContainer').style.display = 'none';
                 });
@@ -145,7 +157,6 @@
             for (let i = 0; i < currentQuizData.totalQuestions; i++) {
                 let optionsHTML = '';
                 
-                // 정답이 0이면(주관식/서술형) 텍스트 입력창 출력, 그 외는 5지선다 객관식 출력
                 if (currentQuizData.answers[i] === 0) {
                     optionsHTML = `<textarea id="q${i}_text" class="subjective-input" rows="2" placeholder="주관식/서술형 정답을 자유롭게 입력하세요"></textarea>`;
                 } else {
@@ -183,7 +194,6 @@
             const total = currentQuizData.totalQuestions;
             let answered = 0;
             
-            // 모든 문제(객관식/서술형)의 입력 여부 확인
             for (let i = 0; i < total; i++) {
                 if (currentQuizData.answers[i] === 0) {
                     if (document.getElementById(`q${i}_text`).value.trim() !== '') answered++;
@@ -208,7 +218,6 @@
                 resultText.style.display = 'block';
 
                 if (correctAnswer === 0) {
-                    // 서술형: 정답 여부를 채점하지 않고 입력칸을 잠금 처리
                     autoTotal--;
                     const textArea = document.getElementById(`q${i}_text`);
                     textArea.readOnly = true;
@@ -216,7 +225,6 @@
                     textArea.style.color = "#7f8c8d";
                     resultText.innerHTML = '<span style="color:#f39c12; font-weight:bold;">⚠️ 자가 채점</span>';
                 } else {
-                    // 객관식: 정상 채점
                     const selected = document.querySelector(`input[name="question${i}"]:checked`);
                     if (selected && parseInt(selected.value) === correctAnswer) {
                         score++;
@@ -231,12 +239,15 @@
             const finalScore = autoTotal > 0 ? Math.round((score / autoTotal) * 100) : 0;
             saveHistory(studentName, currentQuizData.title, score, autoTotal, finalScore);
             
-            const scriptURL = 'https://script.google.com/macros/s/AKfycby5n7DxgNghVV6myBlC7tono4Q-A441vZsz_b9SaztY6dEy-qLavnBT1nPDgGrOy-yk/exec';
-            const scoreText = `객관식 ${autoTotal}문항 중 ${score}정답 (${finalScore}점)`;
+            // 📌 구글 스프레드시트 전송 로직 유지 (URL이 있다면 전송)
+            // (이전에 발급받은 URL이 있다면 아래 '' 안에 붙여넣으시면 정상 작동합니다.)
+            const scriptURL = 'https://script.google.com/macros/s/AKfycby5n7DxgNghVV6myBlC7tono4Q-A441vZsz_b9SaztY6dEy-qLavnBT1nPDgGrOy-yk/exec'; 
+            if (scriptURL && scriptURL.startsWith('http')) {
+                const scoreText = `객관식 ${autoTotal}문항 중 ${score}정답 (${finalScore}점)`;
+                fetch(`${scriptURL}?name=${encodeURIComponent(studentName)}&testTitle=${encodeURIComponent(currentQuizData.title)}&scoreText=${encodeURIComponent(scoreText)}`, { mode: 'no-cors' })
+                    .catch(error => console.error('전송 실패!', error.message));
+            }
 
-            fetch(`${scriptURL}?name=${encodeURIComponent(studentName)}&testTitle=${encodeURIComponent(currentQuizData.title)}&scoreText=${encodeURIComponent(scoreText)}`, { mode: 'no-cors' })
-                .catch(error => console.error('전송 실패!', error.message));
-            
             alert(`[${studentName}] 학생의 객관식 채점이 완료되었습니다!\n(자동 채점 대상 ${autoTotal}문제 중 ${score}문제 정답)\n\n서술형 문제와 틀린 문제는 화면 아래의 해설을 보며 스스로 확인해 보세요.`);
             
             document.getElementById('submitBtn').style.display = 'none'; 
