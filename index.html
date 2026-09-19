@@ -230,6 +230,13 @@
 
             const finalScore = autoTotal > 0 ? Math.round((score / autoTotal) * 100) : 0;
             saveHistory(studentName, currentQuizData.title, score, autoTotal, finalScore);
+            
+            const scriptURL = 'https://script.google.com/macros/s/AKfycby5n7DxgNghVV6myBlC7tono4Q-A441vZsz_b9SaztY6dEy-qLavnBT1nPDgGrOy-yk/exec';
+            const scoreText = `객관식 ${autoTotal}문항 중 ${score}정답 (${finalScore}점)`;
+
+            fetch(`${scriptURL}?name=${encodeURIComponent(studentName)}&testTitle=${encodeURIComponent(currentQuizData.title)}&scoreText=${encodeURIComponent(scoreText)}`, { mode: 'no-cors' })
+                .catch(error => console.error('전송 실패!', error.message));
+            
             alert(`[${studentName}] 학생의 객관식 채점이 완료되었습니다!\n(자동 채점 대상 ${autoTotal}문제 중 ${score}문제 정답)\n\n서술형 문제와 틀린 문제는 화면 아래의 해설을 보며 스스로 확인해 보세요.`);
             
             document.getElementById('submitBtn').style.display = 'none'; 
