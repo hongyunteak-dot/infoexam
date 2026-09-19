@@ -1,52 +1,87 @@
 [
   {
-    "name": "1. 컴퓨팅 시스템 (1회)",
-    "pdf": "씨마스 문제.pdf#page=1",
-    "answerData": "exam1_1.json"
+    "publisher": "📘 씨마스 문제",
+    "tests": [
+      {
+        "name": "1. 컴퓨팅 시스템 (1회)",
+        "pdf": "씨마스 문제.pdf#page=1",
+        "answerData": "exam1_1.json"
+      },
+      {
+        "name": "1. 컴퓨팅 시스템 (2회)",
+        "pdf": "씨마스 문제.pdf#page=5",
+        "answerData": "exam1_2.json"
+      },
+      {
+        "name": "2. 데이터 (1회)",
+        "pdf": "씨마스 문제.pdf#page=9",
+        "answerData": "exam2_1.json"
+      },
+      {
+        "name": "2. 데이터 (2회)",
+        "pdf": "씨마스 문제.pdf#page=15",
+        "answerData": "exam2_2.json"
+      },
+      {
+        "name": "3. 알고리즘과 프로그래밍 (1회)",
+        "pdf": "씨마스 문제.pdf#page=21",
+        "answerData": "exam3_1.json"
+      },
+      {
+        "name": "3. 알고리즘과 프로그래밍 (2회)",
+        "pdf": "씨마스 문제.pdf#page=27",
+        "answerData": "exam3_2.json"
+      },
+      {
+        "name": "4. 인공지능 (1회)",
+        "pdf": "씨마스 문제.pdf#page=33",
+        "answerData": "exam4_1.json"
+      },
+      {
+        "name": "4. 인공지능 (2회)",
+        "pdf": "씨마스 문제.pdf#page=37",
+        "answerData": "exam4_2.json"
+      },
+      {
+        "name": "5. 디지털 문화 (1회)",
+        "pdf": "씨마스 문제.pdf#page=41",
+        "answerData": "exam5_1.json"
+      },
+      {
+        "name": "5. 디지털 문화 (2회)",
+        "pdf": "씨마스 문제.pdf#page=46",
+        "answerData": "exam5_2.json"
+      }
+    ]
   },
   {
-    "name": "1. 컴퓨팅 시스템 (2회)",
-    "pdf": "씨마스 문제.pdf#page=5",
-    "answerData": "exam1_2.json"
+    "publisher": "📗 천재 문제",
+    "tests": [
+      {
+        "name": "1. 정보 문화 (1회)",
+        "pdf": "천재 문제.pdf#page=1",
+        "answerData": "chunjae_1.json"
+      }
+    ]
   },
   {
-    "name": "2. 데이터 (1회)",
-    "pdf": "씨마스 문제.pdf#page=9",
-    "answerData": "exam2_1.json"
+    "publisher": "📙 길벗 문제",
+    "tests": [
+      {
+        "name": "1. 자료와 정보 (1회)",
+        "pdf": "길벗 문제.pdf#page=1",
+        "answerData": "gilbut_1.json"
+      }
+    ]
   },
   {
-    "name": "2. 데이터 (2회)",
-    "pdf": "씨마스 문제.pdf#page=15",
-    "answerData": "exam2_2.json"
-  },
-  {
-    "name": "3. 알고리즘과 프로그래밍 (1회)",
-    "pdf": "씨마스 문제.pdf#page=21",
-    "answerData": "exam3_1.json"
-  },
-  {
-    "name": "3. 알고리즘과 프로그래밍 (2회)",
-    "pdf": "씨마스 문제.pdf#page=27",
-    "answerData": "exam3_2.json"
-  },
-  {
-    "name": "4. 인공지능 (1회)",
-    "pdf": "씨마스 문제.pdf#page=33",
-    "answerData": "exam4_1.json"
-  },
-  {
-    "name": "4. 인공지능 (2회)",
-    "pdf": "씨마스 문제.pdf#page=37",
-    "answerData": "exam4_2.json"
-  },
-  {
-    "name": "5. 디지털 문화 (1회)",
-    "pdf": "씨마스 문제.pdf#page=41",
-    "answerData": "exam5_1.json"
-  },
-  {
-    "name": "5. 디지털 문화 (2회)",
-    "pdf": "씨마스 문제.pdf#page=46",
-    "answerData": "exam5_2.json"
+    "publisher": "📕 금성 문제",
+    "tests": [
+      {
+        "name": "1. 정보 사회 (1회)",
+        "pdf": "금성 문제.pdf#page=1",
+        "answerData": "kumsung_1.json"
+      }
+    ]
   }
 ]
