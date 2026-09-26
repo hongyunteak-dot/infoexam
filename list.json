@@ -54,14 +54,19 @@
       }
     ]
   },
-  {
+{
     "publisher": "📗 천재 문제",
     "tests": [
-      {
-        "name": "1. 정보 문화 (1회)",
-        "pdf": "천재 문제.pdf#page=1",
-        "answerData": "chunjae_1.json"
-      }
+      { "name": "1. 컴퓨팅 시스템 (학교 시험)", "pdf": "천재 문제.pdf#page=1", "answerData": "chunjae_1_1.json" },
+      { "name": "1. 컴퓨팅 시스템 (단답 및 서술)", "pdf": "천재 문제.pdf#page=2", "answerData": "chunjae_1_2.json" },
+      { "name": "2. 데이터 (학교 시험)", "pdf": "천재 문제.pdf#page=4", "answerData": "chunjae_2_1.json" },
+      { "name": "2. 데이터 (단답 및 서술)", "pdf": "천재 문제.pdf#page=5", "answerData": "chunjae_2_2.json" },
+      { "name": "3. 알고리즘과 프로그래밍 (학교 시험)", "pdf": "천재 문제.pdf#page=7", "answerData": "chunjae_3_1.json" },
+      { "name": "3. 알고리즘과 프로그래밍 (단답 및 서술)", "pdf": "천재 문제.pdf#page=9", "answerData": "chunjae_3_2.json" },
+      { "name": "4. 인공지능 (학교 시험)", "pdf": "천재 문제.pdf#page=11", "answerData": "chunjae_4_1.json" },
+      { "name": "4. 인공지능 (단답 및 서술)", "pdf": "천재 문제.pdf#page=13", "answerData": "chunjae_4_2.json" },
+      { "name": "5. 디지털 문화 (학교 시험)", "pdf": "천재 문제.pdf#page=15", "answerData": "chunjae_5_1.json" },
+      { "name": "5. 디지털 문화 (단답 및 서술)", "pdf": "천재 문제.pdf#page=17", "answerData": "chunjae_5_2.json" }
     ]
   },
   {
