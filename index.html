@@ -66,7 +66,7 @@
         
         .options { display: flex; gap: 8px; flex: 1; flex-wrap: wrap; align-items: center; }
         
-        /* 라디오 버튼(단일 선택)과 체크박스(다중 선택) 공통 스타일 적용 */
+        /* 다중 선택(체크박스)과 단일 선택(라디오) 공통 스타일 */
         .options input[type="radio"], .options input[type="checkbox"] { display: none; }
         .options label { 
             display: inline-block; width: 36px; height: 36px; line-height: 32px; 
@@ -189,7 +189,7 @@
                     loadHistory();
                 })
                 .catch(err => {
-                    document.getElementById('omrArea').innerHTML = '<p style="color:red;">목록 파일(list.json)을 불러오지 못했습니다. 파일 구조를 확인해주세요.</p>';
+                    document.getElementById('omrArea').innerHTML = '<p style="color:red;">목록 파일(list.json)을 불러오지 못했습니다.</p>';
                 });
         };
 
@@ -226,36 +226,42 @@
             for (let i = 0; i < currentQuizData.totalQuestions; i++) {
                 let optionsHTML = '';
                 let ans = currentQuizData.answers[i];
-                let isMultiOX = Array.isArray(ans) && typeof ans[0] === 'string'; // 소문항 다중 O/X 여부
+                
+                // [스마트 방어 코드] 사용자가 데이터 파일에 "2, 4" 처럼 문자로 잘못 적었을 경우 자동으로 배열로 교정
+                if (typeof ans === 'string' && ans.includes(',') && !ans.includes('O') && !ans.includes('X')) {
+                    ans = ans.split(',').map(v => parseInt(v.trim()));
+                    currentQuizData.answers[i] = ans; // 교정된 데이터 덮어쓰기
+                }
+
+                let isMultiOX = Array.isArray(ans) && typeof ans[0] === 'string'; // 다중 O/X
+                let isMultiChoice = Array.isArray(ans) && typeof ans[0] === 'number'; // 복수 정답
                 
                 if (ans === 0) {
                     optionsHTML = `<textarea id="q${i}_text" class="subjective-input" rows="2" placeholder="주관식/서술형 정답을 자유롭게 입력하세요"></textarea>`;
-                } else if (Array.isArray(ans)) {
-                    if (typeof ans[0] === 'number') {
-                        // 복수 정답 (체크박스 형태로 다중 선택 가능)
-                        for (let j = 1; j <= 5; j++) { 
-                            optionsHTML += `
-                                <input type="checkbox" id="q${i}_opt${j}" name="question${i}" value="${j}">
-                                <label for="q${i}_opt${j}">${j}</label>
-                            `;
-                        }
-                    } else if (typeof ans[0] === 'string') {
-                        // 소문항이 여러 개인 O/X 문제 (여러 줄 생성)
-                        optionsHTML += `<div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:5px;">`;
-                        for (let k = 0; k < ans.length; k++) {
-                            optionsHTML += `
-                                <div style="display:flex; gap:10px; align-items:center;">
-                                    <span style="font-size:0.9em; color:#64748b; font-weight:bold; width:22px;">(${k+1})</span>
-                                    <input type="radio" id="q${i}_sub${k}_O" name="question${i}_sub${k}" value="O">
-                                    <label for="q${i}_sub${k}_O" style="width:34px; height:34px; line-height:30px;">O</label>
-                                    <input type="radio" id="q${i}_sub${k}_X" name="question${i}_sub${k}" value="X">
-                                    <label for="q${i}_sub${k}_X" style="width:34px; height:34px; line-height:30px;">X</label>
-                                </div>`;
-                        }
-                        optionsHTML += `</div>`;
+                } else if (isMultiChoice) {
+                    // ★ 복수 정답: 다중 선택이 가능한 checkbox로 생성 ★
+                    for (let j = 1; j <= 5; j++) { 
+                        optionsHTML += `
+                            <input type="checkbox" id="q${i}_opt${j}" name="question${i}" value="${j}">
+                            <label for="q${i}_opt${j}">${j}</label>
+                        `;
                     }
+                } else if (isMultiOX) {
+                    // 다중 O/X
+                    optionsHTML += `<div style="display:flex; flex-direction:column; gap:8px; width:100%; margin-top:5px;">`;
+                    for (let k = 0; k < ans.length; k++) {
+                        optionsHTML += `
+                            <div style="display:flex; gap:10px; align-items:center;">
+                                <span style="font-size:0.9em; color:#64748b; font-weight:bold; width:22px;">(${k+1})</span>
+                                <input type="radio" id="q${i}_sub${k}_O" name="question${i}_sub${k}" value="O">
+                                <label for="q${i}_sub${k}_O" style="width:34px; height:34px; line-height:30px;">O</label>
+                                <input type="radio" id="q${i}_sub${k}_X" name="question${i}_sub${k}" value="X">
+                                <label for="q${i}_sub${k}_X" style="width:34px; height:34px; line-height:30px;">X</label>
+                            </div>`;
+                    }
+                    optionsHTML += `</div>`;
                 } else if (ans === "O" || ans === "X") {
-                    // 단일 O/X 문제
+                    // 단일 O/X
                     optionsHTML += `
                         <input type="radio" id="q${i}_O" name="question${i}" value="O">
                         <label for="q${i}_O" style="width:38px; height:38px; line-height:34px;">O</label>
@@ -263,7 +269,7 @@
                         <label for="q${i}_X" style="width:38px; height:38px; line-height:34px;">X</label>
                     `;
                 } else {
-                    // 일반 5지선다 객관식
+                    // 일반 객관식 1개 정답 (라디오 버튼)
                     for (let j = 1; j <= 5; j++) { 
                         optionsHTML += `
                             <input type="radio" id="q${i}_opt${j}" name="question${i}" value="${j}">
@@ -298,21 +304,22 @@
             const total = currentQuizData.totalQuestions;
             let answered = 0;
             
-            // 모든 유형의 입력 여부 검사
             for (let i = 0; i < total; i++) {
                 let ans = currentQuizData.answers[i];
+                let isMultiOX = Array.isArray(ans) && typeof ans[0] === 'string';
+                let isMultiChoice = Array.isArray(ans) && typeof ans[0] === 'number';
+
                 if (ans === 0) {
                     if (document.getElementById(`q${i}_text`).value.trim() !== '') answered++;
-                } else if (Array.isArray(ans)) {
-                    if (typeof ans[0] === 'number') {
-                        if (document.querySelectorAll(`input[name="question${i}"]:checked`).length > 0) answered++;
-                    } else if (typeof ans[0] === 'string') {
-                        let subAnswered = 0;
-                        for(let k=0; k<ans.length; k++) {
-                            if(document.querySelector(`input[name="question${i}_sub${k}"]:checked`)) subAnswered++;
-                        }
-                        if(subAnswered === ans.length) answered++;
+                } else if (isMultiChoice) {
+                    // 복수 정답 문항 체크 여부 확인
+                    if (document.querySelectorAll(`input[name="question${i}"]:checked`).length > 0) answered++;
+                } else if (isMultiOX) {
+                    let subAnswered = 0;
+                    for(let k=0; k<ans.length; k++) {
+                        if(document.querySelector(`input[name="question${i}_sub${k}"]:checked`)) subAnswered++;
                     }
+                    if(subAnswered === ans.length) answered++;
                 } else {
                     if (document.querySelector(`input[name="question${i}"]:checked`)) answered++;
                 }
@@ -333,6 +340,9 @@
                 if (expText) expText.style.display = 'block'; 
                 resultText.style.display = 'inline-block';
 
+                let isMultiOX = Array.isArray(ans) && typeof ans[0] === 'string';
+                let isMultiChoice = Array.isArray(ans) && typeof ans[0] === 'number';
+
                 if (ans === 0) {
                     autoTotal--;
                     const textArea = document.getElementById(`q${i}_text`);
@@ -348,21 +358,19 @@
                     let isCorrect = false;
                     let displayAns = ans;
 
-                    // 복수 정답 및 다중 O/X 채점 로직
-                    if (Array.isArray(ans)) {
-                        if (typeof ans[0] === 'number') {
-                            const selected = Array.from(document.querySelectorAll(`input[name="question${i}"]:checked`)).map(el => parseInt(el.value));
-                            isCorrect = (selected.length === ans.length) && ans.every(val => selected.includes(val));
-                            displayAns = ans.join(', ') + "번";
-                        } else if (typeof ans[0] === 'string') {
-                            let allCorrect = true;
-                            for(let k=0; k<ans.length; k++) {
-                                const sel = document.querySelector(`input[name="question${i}_sub${k}"]:checked`);
-                                if(!sel || sel.value !== ans[k]) allCorrect = false;
-                            }
-                            isCorrect = allCorrect;
-                            displayAns = ans.join(', ');
+                    if (isMultiChoice) {
+                        // 복수 정답 채점 로직
+                        const selected = Array.from(document.querySelectorAll(`input[name="question${i}"]:checked`)).map(el => parseInt(el.value));
+                        isCorrect = (selected.length === ans.length) && ans.every(val => selected.includes(val));
+                        displayAns = ans.join(', ') + "번";
+                    } else if (isMultiOX) {
+                        let allCorrect = true;
+                        for(let k=0; k<ans.length; k++) {
+                            const sel = document.querySelector(`input[name="question${i}_sub${k}"]:checked`);
+                            if(!sel || sel.value !== ans[k]) allCorrect = false;
                         }
+                        isCorrect = allCorrect;
+                        displayAns = ans.join(', ');
                     } else if (ans === "O" || ans === "X") {
                         const selected = document.querySelector(`input[name="question${i}"]:checked`);
                         isCorrect = selected && selected.value === ans;
@@ -389,7 +397,7 @@
 
             saveHistory(studentName, fullTestTitle, score, autoTotal, finalScore);
             
-            // 📌 선생님 구글 스프레드시트 앱스 스크립트 주소를 아래 빈칸에 꼭 다시 넣어주세요!
+            // 📌 구글 스프레드시트 URL 입력란 (여기에 다시 주소를 꼭 넣어주세요!)
             const scriptURL = 'https://script.google.com/macros/s/AKfycby5n7DxgNghVV6myBlC7tono4Q-A441vZsz_b9SaztY6dEy-qLavnBT1nPDgGrOy-yk/exec'; 
             if (scriptURL && scriptURL.startsWith('http')) {
                 const scoreText = `자동채점 ${autoTotal}문항 중 ${score}정답 (${finalScore}점)`;
